@@ -6,8 +6,11 @@ import com.stocksync.backend.entity.Invoice;
 import com.stocksync.backend.entity.InvoiceItem;
 import com.stocksync.backend.repository.InvoiceRepository;
 import com.stocksync.backend.repository.InvoiceItemRepository;
+import com.stocksync.backend.repository.LocationMappingRepository;
+import com.stocksync.backend.service.StockAlertService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.*;
@@ -19,6 +22,10 @@ public class InvoiceService {
     private InvoiceRepository invoiceRepository;
     @Autowired
     private InvoiceItemRepository invoiceItemRepository;
+    @Autowired
+    private StockAlertService stockAlertService;
+    @Autowired
+    private LocationMappingRepository locationMappingRepository;
 
     private InvoiceDTO toDTO(Invoice invoice) {
         InvoiceDTO dto = new InvoiceDTO();
@@ -56,6 +63,7 @@ public class InvoiceService {
         invoice.setStatus(dto.getStatus());
     }
 
+    @Transactional
     public InvoiceDTO createInvoice(InvoiceDTO dto) {
         Invoice invoice = new Invoice();
         updateEntity(invoice, dto);
@@ -76,7 +84,14 @@ public class InvoiceService {
                 item.setUpdatedTime(now);
                 invoiceItemRepository.save(item);
             }
+
+            // Check stock levels after invoice creation
+            for (InvoiceItemDTO itemDTO : dto.getItems()) {
+                locationMappingRepository.findByItemId(itemDTO.getItemId())
+                    .forEach(stockAlertService::checkAndCreateAlert);
+            }
         }
+
         return toDTO(invoice);
     }
 

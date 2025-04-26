@@ -6,8 +6,10 @@ import com.stocksync.backend.entity.Bill;
 import com.stocksync.backend.entity.BillItem;
 import com.stocksync.backend.repository.BillRepository;
 import com.stocksync.backend.repository.BillItemRepository;
+import com.stocksync.backend.repository.LocationMappingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.*;
@@ -17,8 +19,15 @@ import java.util.stream.Collectors;
 public class BillService {
     @Autowired
     private BillRepository billRepository;
+    
     @Autowired
     private BillItemRepository billItemRepository;
+    
+    @Autowired
+    private LocationMappingRepository locationMappingRepository;
+    
+    @Autowired
+    private StockAlertService stockAlertService;
 
     private BillDTO toDTO(Bill bill) {
         BillDTO dto = new BillDTO();
@@ -30,6 +39,7 @@ public class BillService {
         dto.setBillingAddress(bill.getBillingAddress());
         dto.setTotalAmount(bill.getTotalAmount());
         dto.setStatus(bill.getStatus());
+        
         List<BillItem> items = billItemRepository.findByBillId(bill.getBillId());
         List<BillItemDTO> itemDTOs = items.stream().map(item -> {
             BillItemDTO bidto = new BillItemDTO();
@@ -50,23 +60,17 @@ public class BillService {
         bill.setBillDate(dto.getBillDate());
         bill.setDueDate(dto.getDueDate());
         bill.setBillingAddress(dto.getBillingAddress());
+        bill.setTotalAmount(dto.getTotalAmount());
         bill.setStatus(dto.getStatus());
     }
 
-    private double calculateTotalAmount(List<BillItemDTO> items) {
-        if (items == null) return 0.0;
-        return items.stream()
-                .mapToDouble(i -> (i.getQuantity() != null ? i.getQuantity() : 0.0) * (i.getUnitPrice() != null ? i.getUnitPrice() : 0.0))
-                .sum();
-    }
-
+    @Transactional
     public BillDTO createBill(BillDTO dto) {
         Bill bill = new Bill();
         updateEntity(bill, dto);
         long now = Instant.now().toEpochMilli();
         bill.setCreatedTime(now);
         bill.setUpdatedTime(now);
-        bill.setTotalAmount(calculateTotalAmount(dto.getItems()));
         bill = billRepository.save(bill);
 
         if (dto.getItems() != null) {
@@ -80,6 +84,10 @@ public class BillService {
                 item.setCreatedTime(now);
                 item.setUpdatedTime(now);
                 billItemRepository.save(item);
+                
+                // Check stock levels after adding items
+                locationMappingRepository.findByItemId(itemDTO.getItemId())
+                    .forEach(stockAlertService::checkAndCreateAlert);
             }
         }
         return toDTO(bill);
@@ -91,7 +99,6 @@ public class BillService {
             Bill bill = opt.get();
             updateEntity(bill, dto);
             bill.setUpdatedTime(Instant.now().toEpochMilli());
-            bill.setTotalAmount(calculateTotalAmount(dto.getItems()));
             bill = billRepository.save(bill);
 
             billItemRepository.deleteByBillId(id);
@@ -107,6 +114,10 @@ public class BillService {
                     item.setCreatedTime(now);
                     item.setUpdatedTime(now);
                     billItemRepository.save(item);
+                    
+                    // Check stock levels after updating items
+                    locationMappingRepository.findByItemId(itemDTO.getItemId())
+                        .forEach(stockAlertService::checkAndCreateAlert);
                 }
             }
             return Optional.of(toDTO(bill));
