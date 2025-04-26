@@ -1,0 +1,24 @@
+# Maven target directory
+/target/
+
+# IDE files
+/.idea/
+/*.iml
+*.classpath
+*.project
+*.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment files
+.env
+
+# Maven wrapper files (optional, if you want to ignore them)
+#mvnw
+#mvnw.cmd
+#.mvn/
