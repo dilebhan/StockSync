@@ -1,7 +1,23 @@
 package com.stocksync.dto;
 
+import jakarta.validation.constraints.*;
+
 public class UserDTO {
-    // ...existing code...
+    private Long userId;
+
+    @NotBlank(message = "Username is required")
+    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+    private String userName;
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
+    private String userEmailId;
+
+    @NotBlank(message = "Password is required")
+    @Size(min = 6, message = "Password must be at least 6 characters")
+    private String userPassword;
+
+    private String userStatus;
 
     public Long getUserId() {
         return userId;
@@ -45,7 +61,8 @@ public class UserDTO {
 }
 
 class SigninRequest {
-    // ...existing code...
+    private String userEmailId;
+    private String userPassword;
 
     public String getUserEmailId() {
         return userEmailId;
@@ -65,7 +82,8 @@ class SigninRequest {
 }
 
 class SigninResponse {
-    // ...existing code...
+    private String token;
+    private UserDTO user;
 
     public String getToken() {
         return token;
