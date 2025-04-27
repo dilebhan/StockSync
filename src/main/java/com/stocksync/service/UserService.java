@@ -6,29 +6,22 @@ import com.stocksync.dto.UserDTO;
 import com.stocksync.entity.User;
 import com.stocksync.repository.UserRepository;
 import org.springframework.beans.BeanUtils;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
     }
 
     public UserDTO createUser(UserDTO userDTO) {
-        if (userRepository.existsByUserEmailId(userDTO.getUserEmailId())) {
-            throw new RuntimeException("Email already exists");
-        }
-        
         User user = new User();
         BeanUtils.copyProperties(userDTO, user);
-        user.setUserPassword(passwordEncoder.encode(userDTO.getUserPassword()));
         user.setUserStatus("ACTIVE");
-        
         User savedUser = userRepository.save(user);
         UserDTO responseDTO = new UserDTO();
         BeanUtils.copyProperties(savedUser, responseDTO);
@@ -39,18 +32,15 @@ public class UserService {
         User user = userRepository.findByUserEmailId(request.getUserEmailId())
             .orElseThrow(() -> new RuntimeException("User not found"));
             
-        if (!passwordEncoder.matches(request.getUserPassword(), user.getUserPassword())) {
+        if (!user.getUserPassword().equals(request.getUserPassword())) {
             throw new RuntimeException("Invalid credentials");
         }
-        
-        // Generate JWT token here
-        String token = "dummy-token"; // Replace with actual JWT token generation
         
         SigninResponse response = new SigninResponse();
         UserDTO userDTO = new UserDTO();
         BeanUtils.copyProperties(user, userDTO);
-        response.setToken(token);
         response.setUser(userDTO);
+        response.setToken("dummy-token"); // Replace with actual JWT token
         return response;
     }
 
@@ -58,12 +48,7 @@ public class UserService {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("User not found"));
             
-        user.setUserName(userDTO.getUserName());
-        user.setUserEmailId(userDTO.getUserEmailId());
-        if (userDTO.getUserPassword() != null) {
-            user.setUserPassword(passwordEncoder.encode(userDTO.getUserPassword()));
-        }
-        
+        BeanUtils.copyProperties(userDTO, user);
         User updatedUser = userRepository.save(user);
         UserDTO responseDTO = new UserDTO();
         BeanUtils.copyProperties(updatedUser, responseDTO);

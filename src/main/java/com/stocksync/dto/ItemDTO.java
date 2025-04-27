@@ -1,17 +1,26 @@
 package com.stocksync.dto;
 
 import jakarta.validation.constraints.*;
+import java.math.BigDecimal;
 
 public class ItemDTO {
-    @NotBlank(message = "Item name is required")
+    @NotBlank
     private String name;
 
-    @NotNull(message = "Price is required")
-    @DecimalMin(value = "0.0", message = "Price must be greater than or equal to 0")
+    @NotNull
+    @DecimalMin("0.0")
     private BigDecimal price;
 
-    @Min(value = 0, message = "Quantity must be greater than or equal to 0")
+    @Min(0)
     private Integer quantity;
 
-    // ...existing code...
+    // Getters and setters
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
+    
+    public Integer getQuantity() { return quantity; }
+    public void setQuantity(Integer quantity) { this.quantity = quantity; }
 }
