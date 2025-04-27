@@ -1,7 +1,7 @@
 package com.stocksync.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 
 public class SigninRequest {
     @NotBlank
@@ -17,3 +17,4 @@ public class SigninRequest {
     public String getUserPassword() { return userPassword; }
     public void setUserPassword(String userPassword) { this.userPassword = userPassword; }
 }
+

@@ -1,18 +1,41 @@
-package com.stocksync.dto;
+package com.stocksync.entity;
 
-import java.util.List;
+import javax.persistence.*;
 import java.util.UUID;
 
-public class ItemDTO {
+@Entity
+@Table(name = "Items")
+public class Item {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "ItemID", columnDefinition = "BINARY(16)")
     private UUID itemId;
-    private String itemName;
-    private String description;
-    private Double unitPrice;
-    private Double costPrice;
-    private Double unitValue;
-    private String unitType;
-    private List<ItemLocationMappingDTO> locations;
 
+    @Column(name = "ItemName", nullable = false)
+    private String itemName;
+
+    @Column(name = "Description", columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "UnitPrice")
+    private Double unitPrice;
+
+    @Column(name = "CostPrice")
+    private Double costPrice;
+
+    @Column(name = "UnitValue")
+    private Double unitValue;
+
+    @Column(name = "UnitType")
+    private String unitType;
+
+    @Column(name = "CreatedTime")
+    private Long createdTime;
+
+    @Column(name = "UpdatedTime")
+    private Long updatedTime;
+
+    // Getters and setters
     public UUID getItemId() { return itemId; }
     public void setItemId(UUID itemId) { this.itemId = itemId; }
     public String getItemName() { return itemName; }
@@ -27,6 +50,8 @@ public class ItemDTO {
     public void setUnitValue(Double unitValue) { this.unitValue = unitValue; }
     public String getUnitType() { return unitType; }
     public void setUnitType(String unitType) { this.unitType = unitType; }
-    public List<ItemLocationMappingDTO> getLocations() { return locations; }
-    public void setLocations(List<ItemLocationMappingDTO> locations) { this.locations = locations; }
+    public Long getCreatedTime() { return createdTime; }
+    public void setCreatedTime(Long createdTime) { this.createdTime = createdTime; }
+    public Long getUpdatedTime() { return updatedTime; }
+    public void setUpdatedTime(Long updatedTime) { this.updatedTime = updatedTime; }
 }

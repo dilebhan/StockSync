@@ -4,7 +4,7 @@ import com.stocksync.dto.SigninRequest;
 import com.stocksync.dto.SigninResponse;
 import com.stocksync.dto.UserDTO;
 import com.stocksync.service.UserService;
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
